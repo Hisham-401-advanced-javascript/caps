@@ -1,9 +1,8 @@
 'use strict';
 
-const events=require('../events');
-const caps=require('../caps');
-const driver=require('../driver');
-const vendor=require('../vendor');
+const caps=require('../caps/caps');
+const driver=require('../driver/driver');
+const vendor=require('../vendor/vendor');
 
 describe('Event Driven',()=>{
   let order={
