@@ -10,7 +10,7 @@ client.connect(PORT, HOST, ()=> {console.log('logger got connected');});
 // Here we got the stored data from the socket and cosole some stuff.
 client.on('data', function(data) {
   let data1 = JSON.parse(data);
-  if(data1.event=='pickup'){
+  if(data1.event==='pickup'){
     setTimeout(function(){console.log(`DRIVER: Picked up ${data1.payload.id}`);
       let message={event :'in-transit',payload:data1.payload};
       let event = JSON.stringify(message);

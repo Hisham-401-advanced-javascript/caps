@@ -22,12 +22,12 @@ setInterval(
     let event = JSON.stringify(message);
     client.write(event);
   },5000);
-  
+
 // Here we want to retrive 'data' from server using data event==>
 const messages = [];
-client.on('data', function(data){ 
+client.on('data', function(data){
   let eventObj = JSON.parse(data);
-  if (eventObj.event == 'delivered') {
+  if (eventObj.event === 'delivered') {
     console.clear();
     messages.push(eventObj.payload.id);
     messages.forEach(msg=> console.log(`Thank you for delivering ${msg}`));
