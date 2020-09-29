@@ -1,8 +1,8 @@
 'use strict';
 
-const events = require('events');
+const Events = require('events');
 
-const eventsEmmiter = new events(); // export the new instance
+const eventsEmmiter = new Events(); // export the new instance
 
 // Global Events pool
 module.exports = eventsEmmiter;
