@@ -1,29 +1,30 @@
-// 'use strict';
+jest.useFakeTimers();
+const emitter = require('../caps/caps.js');
 
-// const caps=require('../caps/caps');
-// const driver=require('../driver/driver');
-// const vendor=require('../vendor/vendor');
+const delivery = {
+  store: '1800 no mo',
+  orderID: '1234',
+  customer: 'testeroni',
+  address: '234 who de we appreciatre',
+};
 
-// describe('Event Driven',()=>{
-//   let order={
-//     storeName: 'A96',
-//     orderId: 5591,
-//     customerName: 'Ahmad',
-//     address: 'Canda',
-//   };
+it('should log pickup', () => {
+  console.log = jest.fn();
+  emitter.emit('pickup', delivery);
 
-//   let spy = jest.spyOn(console, 'log').mockImplementation();
+  expect(console.log).toHaveBeenLastCalledWith('EVENT', expect.objectContaining({event: 'pickup'}));
+});
 
-//   it('pick up',()=>{
-//     events.emit('pickup',order);
-//     expect(spy).toHaveBeenCalled();
-//   });
-//   it('transit',()=>{
-//     events.emit('transit',order);
-//     expect(spy).toHaveBeenCalled();
-//   });
-//   it('delivered',()=>{
-//     events.emit('delivered',order);
-//     expect(spy).toHaveBeenCalled();
-//   });
-// });
+it('should log in-transit', () => {
+  console.log = jest.fn();
+  emitter.emit('in-transit', delivery);
+
+  expect(console.log).toHaveBeenLastCalledWith('EVENT', expect.objectContaining({event: 'in-transit'}));
+
+});
+
+it('should log delivered', () => {
+  console.log = jest.fn();
+  emitter.emit('delivered', delivery);
+  expect(console.log).toHaveBeenLastCalledWith('EVENT', expect.objectContaining({event:'delivered'}))
+});

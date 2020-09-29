@@ -1,55 +1,54 @@
-'use strict';
+const EE = require('events');
+const events = new EE();
 
+require('dotenv').config();
 const net = require('net');
-const PORT = process.env.PORT || 3000;
-const { v4: uuidv4 } = require('uuid'); // To make random ID.
-
 const server = net.createServer();
-server.listen(PORT, ()=> console.log(`Server is up on ${PORT}`));
+let socketPool = {};
+const port = process.env.PORT || 3000;
 
-// Here we start our server and the 'connection' event is for define that this file is the main server and other files are client connect to it.
-let socketPool={};
-server.on('connection', (socket)=> {
+//this starts the server
+server.listen(port, () =>{
+  console.log('Server up and running on port', port);
+});
 
-  // create a unique ID for the connection of each client
-  const id = `Socket-${uuidv4()}`; // uuid package
-  // add the socket objec to the SocketPool Object
-  console.log(`client with ID : ${id} is connected!!! `);
+server.on('connection', socket =>{
+  const id = `Socket-${Math.random()}`;
   socketPool[id] = socket;
-  // console.log(socketPool);
-  // Here we got the data from the vendor and handle it with the 'dispatchEvent()'function.
-  socket.on('data', (buffer)=> dispatchEvent(buffer));
+  // console.log(socket, 'has made a connection to the socketPool along with', socketPool);
 
-  socket.on('error', (e) => {console.log('SOCKET ERR', e);});
 
-  socket.on('end', (end) => {
-    console.log('connection ended', end);
-    delete socketPool[id];
+  socket.on('data', buffer =>{
+    const raw = buffer.toString();
+    onMessageReceived(raw);
+
+  });
+  socket.on('close', () =>{
+    deleteSocket(socket.id);
   });
 });
-server.on('error', (e)=> {
-  console.log('SERVER ERROR', e);
-});
 
-// This function will handle the data that we got from vendor and console it.
-function dispatchEvent(buffer) {
-  let data = JSON.parse(buffer.toString().trim());
-  // data.payload.id=uuidv4();
-  pickup(data);
+function onMessageReceived(string){
+  logEvent(string);
+  broadcast(string);
 }
-
-function pickup(data) {
-  let time = new Date();
-  let event = data.event;
-  let payload =data.payload;
-  console.log('Event',{event,time, payload});
-  broadcast(data);
+function logEvent(string){
+  //console.log the big event
+  const messageObject = JSON.parse(string);
+  const eventName = messageObject.event;
+  const payload = messageObject.payload;
+  const time = new Date();
+  console.log('EVENT', {event: eventName, time, payload})
 }
-
-// This function will store data in socket to use it in vendor and driver using '.write' method
-function broadcast(msg) {
-  let event = JSON.stringify(msg);
-  for (let key in socketPool) {
-    socketPool[key].write(event);
+function broadcast(string){
+  for(let key in socketPool){
+    const socket = socketPool[key];
+    socket.write(string);
   }
 }
+function deleteSocket(id){
+
+  return delete socketPool[id];
+}
+
+module.exports = events;
