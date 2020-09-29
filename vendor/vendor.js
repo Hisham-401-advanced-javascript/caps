@@ -1,48 +1,20 @@
-const EE = require('events');
-const events = new EE();
-
+'use strict';
 require('dotenv').config();
+const { v4: uuidv4 } = require('uuid');
 const faker = require('faker');
-const net = require('net');
-const socket = new net.Socket();
-const port = process.env.PORT || 3000;
-const host = process.env.HOST || 'localHost';
-
-
-socket.connect({port: port, host:host}, ()=>{
-  console.log(`Connected to the server on ${host} : ${port}`);
+const io = require('socket.io-client');
+const socket = io.connect('http://localhost:3000/caps');
+const STORENAME = process.env.STORENAME || 'hisham store';
+socket.emit('join',STORENAME);
+socket.on('delivered', (data)=> {
+  console.log(`Thank you for delivering ${data.id}`);
 });
-socket.on('data', buffer =>{
-  let raw = buffer.toString();
-  let object = JSON.parse(raw);
-  checkForDelivered(object);
-});
-function checkForDelivered(object){
-  if(object.event === 'delivered'){
-    console.log('thank you for delivering ', object.payload.orderID)
-  }
-}
-function fakeData(){
-  const storeInfo = {
-    event: 'pickup',
-    time: new Date(),
-    payload: {
-      store: process.env.STORE,
-      orderID: faker.random.uuid(),
-      customer: faker.name.findName(),
-      address: faker.address.streetAddress()
-    }
-  }
-  return storeInfo;
-}
-
-setInterval(() =>{
-  sendNewOrder()
-}, 5000)
-
-function sendNewOrder(){
-  let newPackage = JSON.stringify(fakeData());
-  socket.write(newPackage);
-}
-
-module.exports = events;
+setInterval(
+  function () {
+    let obj={storeName:STORENAME,
+      id:uuidv4(),
+      customerName:faker.name.findName(),
+      address:faker.address.streetAddress(),
+    };
+    socket.emit('pickup',obj)
+  },5000);
