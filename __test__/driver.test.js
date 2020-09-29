@@ -1,41 +1,49 @@
-// const driver = require('../modules/driver');
-const emitter = require('../driver/driver');
+require('../driver/driver.js');
+let client = require('socket.io-client');
+let socket = client.connect();
 
 jest.useFakeTimers();
 
 beforeEach(jest.clearAllTimers);
 
 const delivery = {
-  store: '1800 no mo',
-  orderID: '1234',
-  customer: 'testerRoni',
-  address: '1234 get dr, me crazy, ca'
+  store: '1-206-flowers',
+  orderId: '1234',
+  customer: 'tester testerooni',
+  address: '123 Nowhere Lane'
 };
 
-describe('handle pick up event', ()=>{
-  it('should emit in-transit event at right time', () => {
-    console.log = jest.fn();
-    const inTransitHandler = jest.fn();
-    emitter.on('in-transit', inTransitHandler);
+describe('handle pick up event', () => {
 
-    emitter.emit('pickup', delivery);
+  it('should emit in-transit event at right time', () => {
+
+    console.log = jest.fn();
+
+    const inTransitHandler = jest.fn();
+
+    socket.on('in-transit', inTransitHandler);
+
+    socket.emit('pickup', delivery);
 
     expect(inTransitHandler).toHaveBeenCalledTimes(0);
 
-    jest.advanceTimersByTime(1000);
+    jest.advanceTimersByTime(2000);
 
     expect(inTransitHandler).toHaveBeenCalledTimes(1);
-    expect(console.log).toHaveBeenCalledWith(`Driver: picked up ${delivery.orderID}`);
+
+    expect(console.log).toHaveBeenCalledWith(`DRIVER: picked up ${delivery.orderId}`);
 
   });
 
   it('should emit delivered event at right time', () => {
+
     console.log = jest.fn();
+
     const deliveredHandler = jest.fn();
 
-    emitter.on('in-transit', deliveredHandler);
+    socket.on('delivered', deliveredHandler);
 
-    emitter.emit('pickup', delivery);
+    socket.emit('pickup', delivery);
 
     expect(deliveredHandler).toHaveBeenCalledTimes(0);
 
@@ -43,7 +51,8 @@ describe('handle pick up event', ()=>{
 
     expect(deliveredHandler).toHaveBeenCalledTimes(1);
 
-    expect(console.log).toHaveBeenLastCalledWith(`Driver: picked up ${delivery.orderID}`);
-  });
+    // Notice the "Last" in method name
+    expect(console.log).toHaveBeenLastCalledWith(`DRIVER: delivered ${delivery.orderId}`);
 
+  });
 });

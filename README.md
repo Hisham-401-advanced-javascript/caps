@@ -44,6 +44,8 @@ This application was build with Node.js and it includes:
 # UML diagram
 ![image](./assets/Uml-16.jpg)
 ![image](./assets/Uml-17.jpg)
+![image](./assets/Uml-18.jpg)
+
 
 ## Change Log
 27-09-2020 9:00pm 

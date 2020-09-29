@@ -1,8 +1,8 @@
 {
-  "name": "vendor",
+  "name": "__test__",
   "version": "1.0.0",
   "description": "",
-  "main": "vendor.js",
+  "main": "caps.test.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "net": "^1.0.2",
+    "jest": "^26.4.2",
     "socket.io": "^2.3.0"
   }
 }
