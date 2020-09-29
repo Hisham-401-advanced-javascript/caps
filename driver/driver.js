@@ -1,28 +1,47 @@
-'use strict';
+const EE = require('events');
+const events = new EE();
 
+require('dotenv').config();
 const net = require('net');
-const client = new net.Socket();
-// connect to server.js using port + host(ip-address) the same as what the main server had(caps.js)
-const HOST = process.env.HOST || 'localhost';
-const PORT = process.env.PORT || 3000;
+const socket = new net.Socket();
+const port = process.env.PORT || 3000;
+const host = process.env.HOST || 'localHost';
 
-client.connect(PORT, HOST, ()=> {console.log('logger got connected');});
-// Here we got the stored data from the socket and cosole some stuff.
-client.on('data', function(data) {
-  let data1 = JSON.parse(data);
-  if(data1.event==='pickup'){
-    setTimeout(function(){console.log(`DRIVER: Picked up ${data1.payload.id}`);
-      let message={event :'in-transit',payload:data1.payload};
-      let event = JSON.stringify(message);
-      client.write(event);
-    },1000);
-    setTimeout(function(){console.log(`DRIVER: Delivered ${data1.payload.id}`);
-      let message={event :'delivered',payload:data1.payload};
-      let event = JSON.stringify(message);
-      client.write(event);
-    },3000);
+//connect
+socket.connect({ port: port, host: host}, () =>{
+  console.log('Connected to the server on', host,':', port)
+})
+
+socket.on('data', buffer =>{
+  let raw = buffer.toString();
+  let object = JSON.parse(raw);
+  if(object.event==='pickup'){
+    simulatePickup(object);
   }
 });
-client.on('close', function() {
-  console.log('Logger Connection got closed');
-});
+
+function simulatePickup(object){
+  setTimeout(()=>{
+    let newObject = {
+      event: 'in-transit',
+      payload: object.payload,
+    };
+    console.log('picking up ', newObject.payload.orderID)
+    let stringVersion = JSON.stringify(newObject);
+    socket.write(stringVersion);
+    simulateDelivery(object);
+  }, 1000);
+
+  function simulateDelivery(object){
+    setTimeout(()=>{
+      let message = {
+        event: 'delivered',
+        payload: object.payload,
+      };
+      let stringVersion = JSON.stringify(message);
+      socket.write(stringVersion);
+    }, 3000)
+  }
+}
+
+module.exports = events;

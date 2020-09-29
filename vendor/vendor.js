@@ -1,35 +1,48 @@
-'use strict';
+const EE = require('events');
+const events = new EE();
+
 require('dotenv').config();
-const net = require('net');
-const client = new net.Socket();
-// connect to server.js using port + host(ip-address) the same as what the main server had(caps.js)
-const HOST = process.env.HOST || 'localhost';
-const PORT = process.env.PORT || 3000;
-client.connect(PORT, HOST, ()=> {console.log('vendor got connected');});
 const faker = require('faker');
-const { v4: uuidv4 } = require('uuid'); // To make random ID.
-const STORENAME = process.env.STORENAME;
-// Send the fake order data to server using client.write every 5 min==>
+const net = require('net');
+const socket = new net.Socket();
+const port = process.env.PORT || 3000;
+const host = process.env.HOST || 'localHost';
 
-setInterval(
-  function () {
-    let obj={storeName:STORENAME,
-      customerName:faker.name.findName(),
-      address:faker.address.streetAddress(),
-      id:uuidv4()
-    };
-    let message={event :'pickup',payload:obj}
-    let event = JSON.stringify(message);
-    client.write(event);
-  },5000);
 
-// Here we want to retrive 'data' from server using data event==>
-const messages = [];
-client.on('data', function(data){
-  let eventObj = JSON.parse(data);
-  if (eventObj.event === 'delivered') {
-    console.clear();
-    messages.push(eventObj.payload.id);
-    messages.forEach(msg=> console.log(`Thank you for delivering ${msg}`));
-  }
+socket.connect({port: port, host:host}, ()=>{
+  console.log(`Connected to the server on ${host} : ${port}`);
 });
+socket.on('data', buffer =>{
+  let raw = buffer.toString();
+  let object = JSON.parse(raw);
+  checkForDelivered(object);
+});
+function checkForDelivered(object){
+  if(object.event === 'delivered'){
+    console.log('thank you for delivering ', object.payload.orderID)
+  }
+}
+function fakeData(){
+  const storeInfo = {
+    event: 'pickup',
+    time: new Date(),
+    payload: {
+      store: process.env.STORE,
+      orderID: faker.random.uuid(),
+      customer: faker.name.findName(),
+      address: faker.address.streetAddress()
+    }
+  }
+  return storeInfo;
+}
+
+setInterval(() =>{
+  sendNewOrder()
+}, 5000)
+
+function sendNewOrder(){
+  let newPackage = JSON.stringify(fakeData());
+  socket.write(newPackage);
+}
+
+module.exports = events;
